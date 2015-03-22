@@ -42,7 +42,7 @@ int main() {
 	const int maxcars = 1;
 	int currentCars = 0;
 	// thread variables
-	pthread_t cars[maxcars];
+	pthread_t car;
 	pthread_t entryguard, exitguard;
 
 	// Initialize the entry guard and exit guard.
@@ -50,11 +50,8 @@ int main() {
 	pthread_create(&exitguard, NULL, plcs_exitguard, NULL);
 
 	// Initialize car0 (only one car in this test)
-	int id = 0;
-	while (true) {
-		pthread_create(&cars[0], NULL, car, &id);
-		pthread_join(cars[0], NULL);
-	}
+		pthread_create(&car, NULL, car, &id);
+		pthread_join(car, NULL);
 
 	return 0;
 }
