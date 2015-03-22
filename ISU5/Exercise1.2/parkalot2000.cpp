@@ -48,7 +48,7 @@ int main() {
 	pthread_create(&entryguard, NULL, plcs_entryguard, NULL);
 	pthread_create(&exitguard, NULL, plcs_exitguard, NULL);
 
-	// Initialize car0 (only one car in this test)
+	// Initialize car threads
 	for (int i = 0; i < maxcars; i++) {
 		int * id = new int;
 		*id = i;
