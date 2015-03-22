@@ -50,8 +50,8 @@ int main() {
 	pthread_create(&exitguard, NULL, plcs_exitguard, NULL);
 
 	// Initialize car0 (only one car in this test)
-		pthread_create(&car, NULL, car, &id);
-		pthread_join(car, NULL);
+	pthread_create(&car, NULL, car, &id);
+	pthread_join(car, NULL);
 
 	return 0;
 }
