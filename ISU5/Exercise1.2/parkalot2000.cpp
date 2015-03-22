@@ -131,12 +131,9 @@ void * car(void * arg) {
 		}
 		else {
 			cout << "Car #" << ID << ": EXITED" << endl;
-			alive = false;
-			/* NOT IN USE
-			   int sleepTime = rand() % 10 + 1;
-			   sleep(sleepTime);
-			   state = ARRIVING;
-			 */
+			int sleepTime = rand() % 10 + 1;
+			sleep(sleepTime);
+			state = ARRIVING;
 		}
 		usleep(100000);
 	}
