@@ -40,7 +40,6 @@ int main() {
 	srand(time(NULL));
 	// Initalization of variables
 	const int maxcars = 10;
-	int currentCars = 0;
 	// thread variables
 	pthread_t cars[maxcars];
 	pthread_t entryguard, exitguard;
