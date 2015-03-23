@@ -94,11 +94,10 @@ void * plcs_exitguard(void *) {
 			pthread_cond_wait(&cond_exit, &mutex_exit);
 		doorExitOpen = false;
 		if (currentCars >= parkingLotSize) {
-			cout << "Parking lot is getting free again!" << endl;
+			//cout << "Parking lot is getting free again!" << endl;
 			pthread_mutex_lock(&counter_mut);
 			currentCars--;
 			pthread_mutex_unlock(&counter_mut);
-			pthread_cond_signal(&cond_spotfree);
 		}
 		else {
 			pthread_mutex_lock(&counter_mut);
@@ -117,11 +116,11 @@ void * car(void * arg) {
 	CarState state = ARRIVING;
 	bool alive = true;
 
-	cout << "Car #" << ID << ": CREATED" << endl;
+	//cout << "Car #" << ID << ": CREATED" << endl;
 
 	while (alive) {
 		if (state == ARRIVING) {
-			cout << "Car #" << ID << ": ARRIVING" << endl;
+			//cout << "Car #" << ID << ": ARRIVING" << endl;
 			pthread_mutex_lock(&mutex_entry);
 			carWaitingEntry = true;
 			pthread_cond_signal(&cond_entry);
@@ -134,12 +133,12 @@ void * car(void * arg) {
 		}
 		else if (state == PARKED) {
 			int sleepTime = rand() % 10 + 1;
-			cout << "Car #" << ID << ": PARKED - " << sleepTime << " SECONDS" << endl;
+			//cout << "Car #" << ID << ": PARKED - " << sleepTime << " SECONDS" << endl;
 			sleep(sleepTime);
 			state = EXITING;
 		}
 		else if (state == EXITING) {
-			cout << "Car #" << ID << ": EXITING" << endl;
+			//cout << "Car #" << ID << ": EXITING" << endl;
 			pthread_mutex_lock(&mutex_exit);
 			carWaitingExit = true;
 			pthread_cond_signal(&cond_exit);
@@ -151,7 +150,7 @@ void * car(void * arg) {
 			pthread_mutex_unlock(&mutex_exit);
 		}
 		else {
-			cout << "Car #" << ID << ": EXITED" << endl;
+			//cout << "Car #" << ID << ": EXITED" << endl;
 			int sleepTime = rand() % 10 + 1;
 			sleep(sleepTime);
 			state = ARRIVING;
