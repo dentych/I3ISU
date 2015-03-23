@@ -1,0 +1,17 @@
+exe = hello.target
+CC  = arm-angstrom-linux-gnueabi-g++
+
+.PHONY: all
+all: $(exe)
+$(exe): hello.o
+	$(CC) -o $(exe) hello.o
+hello.o: hello.cpp
+	$(CC) -c hello.cpp
+
+.PHONY: clean
+clean:
+	rm -f $(exe) *.o
+
+.PHONY: help
+help:
+	@echo Targets: all, clean, help

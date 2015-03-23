@@ -1,0 +1,20 @@
+targets = parts.target
+CC = arm-angstrom-linux-gnueabi-g++
+Source = main.cpp part1.cpp part2.cpp
+Object = $(Source:.cpp=.o)
+.PHONY: all
+all: $(targets)
+
+%.o: %.cpp
+	$(CC) -c -o $@ $^
+
+$(targets): $(Object)
+	$(CC) -o $@ $^
+
+.PHONY: clean
+clean:
+	rm -f $(targets) *.o
+
+.PHONY: help
+help:
+	@echo Targets er: all, clean og help.^^^^^^^^
