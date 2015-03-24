@@ -1,3 +1,6 @@
+#ifndef MSGQUEUE_H_
+#define MSGQUEUE_H_
+
 #include <iostream>
 #include <deque>
 #include <pthread.h>
@@ -21,3 +24,5 @@ private:
 	pthread_cond_t sender;
 	pthread_cond_t receiver;
 };
+
+#endif
