@@ -2,6 +2,11 @@
 
 MsgQueue::MsgQueue(unsigned long maxSize) {
 	this->maxSize = maxSize;
+	// Initialize mutex
+	pthread_mutex_init(&mqMut, NULL);
+	// Initialize conditionals
+	pthread_cond_init(&sender, NULL);
+	pthread_cond_init(&receiver, NULL);
 }
 
 void MsgQueue::send(unsigned long id, Message * msg) {
@@ -21,12 +26,13 @@ void MsgQueue::send(unsigned long id, Message * msg) {
 	// Signal that an item has been put in the queue.
 	pthread_cond_signal(&sender);
 
-	// Release mutex
+	// Release mutex.
 	pthread_mutex_unlock(&mqMut);
 }
 Message * MsgQueue::receive(unsigned long & id) {
 	// Lock mutex to use mqitems.
 	pthread_mutex_lock(&mqMut);
+	// Check if empty.
 	while (mqitems.empty()) {
 		pthread_cond_wait(&sender, &mqMut);
 	}
@@ -37,13 +43,19 @@ Message * MsgQueue::receive(unsigned long & id) {
 	mqitems.pop_front();
 	// Signal that an item has been removed.
 	pthread_cond_signal(&receiver);
-	// Unlock mutex
+	// Unlock mutex.
 	pthread_mutex_unlock(&mqMut);
-	// Return id & msg
+	// Return id & msg.
 	id = item.id;
 	return item.msg;
 }
 
 MsgQueue::~MsgQueue() {
-	// Destruction is vital!.
+	// Destroy mutex.
+	pthread_mutex_destroy(&mqMut);
+	// Destroy conditionals.
+	pthread_cond_destroy(&sender);
+	pthread_cond_destroy(&receiver);
+	// Delete rest of queue if not empty (message deallocation).
+	// TBA
 }

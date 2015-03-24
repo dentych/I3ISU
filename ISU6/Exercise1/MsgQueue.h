@@ -17,7 +17,7 @@ public:
 private:
 	std::deque<Item> mqitems;
 	unsigned long maxSize;
-	pthread_mutex_t mqMut = PTHREAD_MUTEX_INITIALIZER;
-	pthread_cond_t sender = PTHREAD_COND_INITIALIZER;
-	pthread_cond_t receiver = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_t mqMut;
+	pthread_cond_t sender;
+	pthread_cond_t receiver;
 };
