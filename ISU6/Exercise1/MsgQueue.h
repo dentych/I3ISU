@@ -2,7 +2,7 @@
 #define MSGQUEUE_H_
 
 #include <iostream>
-#include <deque>
+#include <queue>
 #include <pthread.h>
 #include "Message.h"
 
@@ -18,7 +18,7 @@ public:
 	Message * receive(unsigned long & id);
 	~MsgQueue();
 private:
-	std::deque<Item> mqitems;
+	std::queue<Item> mqitems;
 	unsigned long maxSize;
 	pthread_mutex_t mqMut;
 	pthread_cond_t sender;

@@ -21,7 +21,7 @@ void MsgQueue::send(unsigned long id, Message * msg) {
 	Item item;
 	item.id = id;
 	item.msg = msg;
-	mqitems.push_back(item);
+	mqitems.push(item);
 
 	// Signal that an item has been put in the queue.
 	pthread_cond_signal(&sender);
@@ -40,7 +40,7 @@ Message * MsgQueue::receive(unsigned long & id) {
 	// Receive first item in queue.
 	Item item = mqitems.front();
 	// Remove first item in queue.
-	mqitems.pop_front();
+	mqitems.pop();
 	// Signal that an item has been removed.
 	pthread_cond_signal(&receiver);
 	// Unlock mutex.
