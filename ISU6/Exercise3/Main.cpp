@@ -75,7 +75,7 @@ void dispatcher(Message * msg, unsigned long id, int who = -1) {
 		}
 		case DOOR_OUT_OPEN_CFM:
 		{
-			cout << "Car comes inside." << endl;
+			cout << "Car leaves parking lot." << endl;
 			handleDoorRequest(id);
 			break;
 		}
