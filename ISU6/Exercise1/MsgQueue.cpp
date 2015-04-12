@@ -18,9 +18,7 @@ void MsgQueue::send(unsigned long id, Message * msg) {
 	}
 
 	// Put item into the back of the queue.
-	Item item;
-	item.id = id;
-	item.msg = msg;
+	Item item = { .id = id, .msg = msg };
 	mqitems.push(item);
 
 	// Signal that an item has been put in the queue.
@@ -29,7 +27,7 @@ void MsgQueue::send(unsigned long id, Message * msg) {
 	// Release mutex.
 	pthread_mutex_unlock(&mqMut);
 }
-Message * MsgQueue::receive(unsigned long & id) {
+Message * MsgQueue::receive(unsigned long &id) {
 	// Lock mutex to use mqitems.
 	pthread_mutex_lock(&mqMut);
 	// Check if empty.
