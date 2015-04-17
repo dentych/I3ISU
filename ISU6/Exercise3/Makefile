@@ -13,6 +13,9 @@ Main.o: Main.cpp
 %.o: $(SRCDIR)/%.cpp
 	$(CC) -c -o $@ $^
 
-.PHONY: clean
+.PHONY: clean run
 clean:
 	rm -f *.o $(TARGET)
+
+run:
+	./$(TARGET)
