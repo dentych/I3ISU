@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <unistd.h>
 #include <stdlib.h>
 #include "../Exercise1/Message.h"
@@ -10,7 +11,14 @@ enum {
 	DOOR_IN_OPEN_REQ,
 	DOOR_IN_OPEN_CFM,
 	DOOR_OUT_OPEN_REQ,
-	DOOR_OUT_OPEN_CFM
+	DOOR_OUT_OPEN_CFM,
+	CAR_INSIDE,
+	CAR_OUTSIDE
+};
+
+enum GuardState {
+	ST_READY,
+	ST_BUSY
 };
 
 struct CarData {
@@ -21,25 +29,42 @@ struct CarData {
 
 struct DoorOpenReq : public Message {
 	MsgQueue *mq;
+	int carID;
 };
 
 struct DoorOpenCfm : public Message {
 	bool result;
 };
 
+struct CarInside : public Message {
+	int id;
+};
+
+struct CarOutside : public Message {
+	int id;
+};
+
+void db(string msg) {
+	bool debugOn = false;
+
+	if (debugOn) {
+		cout << "\033[2;37m" << msg << "\033[0m" << endl;
+	}
+}
+
 /* command = 0 closes the door, command = 1 opens the door */
-void handleDoorRequest(unsigned long id) {
+void handleDoorRequest(unsigned long id, int carID = -1) {
 	switch(id) {
 		case DOOR_IN_OPEN_REQ:
-			cout << "ENTRY door opened." << endl;
-			break;
-		case DOOR_IN_OPEN_CFM:
-			cout << "ENTRY door closed." << endl;
+			cout << "ENTRY door opened for " << carID << "." << endl;
 			break;
 		case DOOR_OUT_OPEN_REQ:
-			cout << "EXIT door opened." << endl;
+			cout << "EXIT door opened for " << carID << "." << endl;
 			break;
-		case DOOR_OUT_OPEN_CFM:
+		case CAR_INSIDE:
+			cout << "ENTRY door closed." << endl;
+			break;
+		case CAR_OUTSIDE:
 			cout << "EXIT door closed." << endl;
 			break;
 	}
@@ -49,33 +74,35 @@ void dispatcher(Message * msg, unsigned long id, int who = -1) {
 	switch(id) {
 		case DOOR_IN_OPEN_REQ:
 		{
-			handleDoorRequest(id);
 			DoorOpenReq *req = static_cast<DoorOpenReq*>(msg);
+			handleDoorRequest(id, req->carID);
 
 			DoorOpenCfm * cfm = new DoorOpenCfm;
 			cfm->result = 0;
 			req->mq->send(DOOR_IN_OPEN_CFM, cfm);
 			break;
 		}
-		case DOOR_IN_OPEN_CFM:
-		{
-			cout << "Car comes inside." << endl;
-			handleDoorRequest(id);
-			break;
-		}
 		case DOOR_OUT_OPEN_REQ:
 		{
-			handleDoorRequest(id);
 			DoorOpenReq *req = static_cast<DoorOpenReq*>(msg);
+			handleDoorRequest(id, req->carID);
 
 			DoorOpenCfm * cfm = new DoorOpenCfm;
 			cfm->result = 0;
 			req->mq->send(DOOR_OUT_OPEN_CFM, cfm);
 			break;
 		}
-		case DOOR_OUT_OPEN_CFM:
+		case CAR_INSIDE:
 		{
-			cout << "Car leaves parking lot." << endl;
+			CarInside *msgCast = static_cast<CarInside*>(msg);
+			cout << "Car #" << msgCast->id << " comes inside." << endl;
+			handleDoorRequest(id);
+			break;
+		}
+		case CAR_OUTSIDE:
+		{
+			CarOutside *msgCast = static_cast<CarOutside*>(msg);
+			cout << "Car #" << msgCast->id << " drives out." << endl;
 			handleDoorRequest(id);
 			break;
 		}
@@ -84,12 +111,42 @@ void dispatcher(Message * msg, unsigned long id, int who = -1) {
 
 void * entryGuardThread(void *data) {
 	MsgQueue *mq = static_cast<MsgQueue*>(data);
+	queue<Message*> waitingReqs;
+	GuardState state = ST_READY;
 
 	for (;;) {
+		db("For loop");
 		unsigned long id;
-		Message *msg = mq->receive(id);
-		dispatcher(msg, id);
-		delete msg;
+		Message *msg;
+
+		if (state == ST_READY) {
+			if (waitingReqs.empty()) {
+				msg = mq->receive(id);
+				dispatcher(msg, id);
+				delete msg;
+			}
+			else {
+				msg = waitingReqs.front();
+				waitingReqs.pop();
+				dispatcher(msg, DOOR_IN_OPEN_REQ);
+				delete msg;
+			}
+			state = ST_BUSY;
+		}
+		else {
+			// ST_BUSY
+			msg = mq->receive(id);
+
+			if (id == CAR_INSIDE) {
+				dispatcher(msg, id);
+				delete msg;
+				state = ST_READY;
+			}
+			else {
+				// ID DOOR_IN_OPEN_REQ
+				waitingReqs.push(msg);
+			}
+		}
 	}
 }
 
@@ -113,6 +170,7 @@ void * carThread(void *data) {
 			/* Entry */
 			DoorOpenReq * req = new DoorOpenReq;
 			req->mq = &carQ;
+			req->carID = carID;
 			cout << "Car #" << carID << " wants to get in!" << endl;
 			entryMQ->send(DOOR_IN_OPEN_REQ, req);
 
@@ -122,6 +180,11 @@ void * carThread(void *data) {
 			delete msg;
 		}
 		
+		/* Notify that car is inside */
+		CarInside *answer = new CarInside;
+		answer->id = carID;
+		entryMQ->send(CAR_INSIDE, answer);
+
 		/* Sleep while parked */
 		int waitTime = rand() % 10;
 		cout << "Car #" << carID << " parked for " << waitTime << " seconds." << endl;
@@ -131,6 +194,7 @@ void * carThread(void *data) {
 			/* Exit */
 			DoorOpenReq * req = new DoorOpenReq;
 			req->mq = &carQ;
+			req->carID = carID;
 			cout << "Car #" << carID << " wants to get out!" << endl;
 			exitMQ->send(DOOR_OUT_OPEN_REQ, req);
 
@@ -138,7 +202,15 @@ void * carThread(void *data) {
 			msg = carQ.receive(id);
 			dispatcher(msg, id, carID);
 			delete msg;
+
+			// Drive out and notify exitGuard.
+			CarOutside *answer = new CarOutside;
+			answer->id = carID;
+			exitMQ->send(CAR_OUTSIDE, answer);
 		}
+
+		// Wait minimum 2 seconds before car tries to get in again.
+		sleep(rand() % 5 + 2);
 	}
 
 	delete cardata;
@@ -146,19 +218,49 @@ void * carThread(void *data) {
 
 void * exitGuardThread(void *data) {
 	MsgQueue *mq = static_cast<MsgQueue*>(data);
+	queue<Message*> waitingReqs;
+	GuardState state = ST_READY;
 
 	for (;;) {
+		db("For loop");
 		unsigned long id;
-		Message *msg = mq->receive(id);
-		dispatcher(msg, id);
-		delete msg;
+		Message *msg;
+
+		if (state == ST_READY) {
+			if (waitingReqs.empty()) {
+				msg = mq->receive(id);
+				dispatcher(msg, id);
+				delete msg;
+			}
+			else {
+				msg = waitingReqs.front();
+				waitingReqs.pop();
+				dispatcher(msg, DOOR_OUT_OPEN_REQ);
+				delete msg;
+			}
+			state = ST_BUSY;
+		}
+		else {
+			// ST_BUSY
+			msg = mq->receive(id);
+
+			if (id == CAR_OUTSIDE) {
+				dispatcher(msg, id);
+				delete msg;
+				state = ST_READY;
+			}
+			else {
+				// ID DOOR_OUT_OPEN_REQ
+				waitingReqs.push(msg);
+			}
+		}
 	}
 }
 
 int main() {
 	srand(time(NULL));
 
-	int carAmount = 5;
+	int carAmount = 200;
 
 	// Guard message queue
 	MsgQueue entryQueue(carAmount);
