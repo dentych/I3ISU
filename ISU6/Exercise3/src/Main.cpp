@@ -6,6 +6,12 @@
 #include "../inc/EntryHandlers.hpp"
 #include "../inc/ExitHandlers.hpp"
 
+
+
+/* DU ER GRIM SOM SNOT */
+
+//PS jeg elsker dig
+
 using namespace std;
 
 void * entryGuardThread(void *data) {
