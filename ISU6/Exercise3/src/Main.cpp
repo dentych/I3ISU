@@ -7,43 +7,6 @@
 
 using namespace std;
 
-enum {
-	DOOR_IN_OPEN_REQ,
-	DOOR_IN_OPEN_CFM,
-	DOOR_OUT_OPEN_REQ,
-	DOOR_OUT_OPEN_CFM,
-	CAR_INSIDE,
-	CAR_OUTSIDE
-};
-
-enum GuardState {
-	ST_READY,
-	ST_BUSY
-};
-
-struct CarData {
-	MsgQueue *entryMQ;
-	MsgQueue *exitMQ;
-	int ID;
-};
-
-struct DoorOpenReq : public Message {
-	MsgQueue *mq;
-	int carID;
-};
-
-struct DoorOpenCfm : public Message {
-	bool result;
-};
-
-struct CarInside : public Message {
-	int id;
-};
-
-struct CarOutside : public Message {
-	int id;
-};
-
 void db(string msg) {
 	bool debugOn = false;
 
@@ -111,42 +74,14 @@ void dispatcher(Message * msg, unsigned long id, int who = -1) {
 
 void * entryGuardThread(void *data) {
 	MsgQueue *mq = static_cast<MsgQueue*>(data);
-	queue<Message*> waitingReqs;
 	GuardState state = ST_READY;
+	queue<DoorOpenReq*> waitingReqs;
 
 	for (;;) {
-		db("For loop");
 		unsigned long id;
-		Message *msg;
-
-		if (state == ST_READY) {
-			if (waitingReqs.empty()) {
-				msg = mq->receive(id);
-				dispatcher(msg, id);
-				delete msg;
-			}
-			else {
-				msg = waitingReqs.front();
-				waitingReqs.pop();
-				dispatcher(msg, DOOR_IN_OPEN_REQ);
-				delete msg;
-			}
-			state = ST_BUSY;
-		}
-		else {
-			// ST_BUSY
-			msg = mq->receive(id);
-
-			if (id == CAR_INSIDE) {
-				dispatcher(msg, id);
-				delete msg;
-				state = ST_READY;
-			}
-			else {
-				// ID DOOR_IN_OPEN_REQ
-				waitingReqs.push(msg);
-			}
-		}
+		Message *msg = mq->receive(id);
+		entryHandleMsg(msg, id, state, waitingReqs);
+		delete msg;
 	}
 }
 
@@ -160,60 +95,16 @@ void * carThread(void *data) {
 	int carID = cardata->ID;
 	// A queue specific for this car (for the door open confirm)
 	MsgQueue carQ(1);
-	// ID returned by the MsgQueue receive method
-	unsigned long id;
-	// Message pointer to hold the pointer to the messages received from carQ.
-	Message *msg;
+	
+	// Start ze car
+	entryMQ->send(DOOR_IN_OPEN_REQ, carGenerateOpenMsg(entryMQ, carID));
 
 	for (;;) {
-		{
-			/* Entry */
-			DoorOpenReq * req = new DoorOpenReq;
-			req->mq = &carQ;
-			req->carID = carID;
-			cout << "Car #" << carID << " wants to get in!" << endl;
-			entryMQ->send(DOOR_IN_OPEN_REQ, req);
-
-			// Receive the door open confirm and send it to dispatch.
-			msg = carQ.receive(id);
-			dispatcher(msg, id, carID);
-			delete msg;
-		}
-		
-		/* Notify that car is inside */
-		CarInside *answer = new CarInside;
-		answer->id = carID;
-		entryMQ->send(CAR_INSIDE, answer);
-
-		/* Sleep while parked */
-		int waitTime = rand() % 10;
-		cout << "Car #" << carID << " parked for " << waitTime << " seconds." << endl;
-		sleep(waitTime);
-
-		{
-			/* Exit */
-			DoorOpenReq * req = new DoorOpenReq;
-			req->mq = &carQ;
-			req->carID = carID;
-			cout << "Car #" << carID << " wants to get out!" << endl;
-			exitMQ->send(DOOR_OUT_OPEN_REQ, req);
-
-			// Receive the door open confirm and send it to dispatch.
-			msg = carQ.receive(id);
-			dispatcher(msg, id, carID);
-			delete msg;
-
-			// Drive out and notify exitGuard.
-			CarOutside *answer = new CarOutside;
-			answer->id = carID;
-			exitMQ->send(CAR_OUTSIDE, answer);
-		}
-
-		// Wait minimum 2 seconds before car tries to get in again.
-		sleep(rand() % 5 + 2);
+		unsigned long id;
+		Message *msg = carQ.receive(id);
+		CarHandler::handleMsg(msg, id);
+		delete msg;
 	}
-
-	delete cardata;
 }
 
 void * exitGuardThread(void *data) {
