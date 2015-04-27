@@ -13,11 +13,4 @@ DoorOpenReq* carGenerateOpenMsg(MsgQueue *entryQueue, int id) {
 	return req;
 }
 
-void handleMsg(Message *msg, unsigned long id) {
-	switch(id) {
-		case DOOR_IN_OPEN_CFM:
-			
-	}
-}
-
 #endif

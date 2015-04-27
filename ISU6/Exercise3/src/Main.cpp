@@ -2,75 +2,10 @@
 #include <string>
 #include <unistd.h>
 #include <stdlib.h>
-#include "../../Exercise1/Message.h"
-#include "../../Exercise1/MsgQueue.h"
+#include "../inc/CarHandlers.hpp"
+#include "../inc/EntryHandlers.hpp"
 
 using namespace std;
-
-void db(string msg) {
-	bool debugOn = false;
-
-	if (debugOn) {
-		cout << "\033[2;37m" << msg << "\033[0m" << endl;
-	}
-}
-
-/* command = 0 closes the door, command = 1 opens the door */
-void handleDoorRequest(unsigned long id, int carID = -1) {
-	switch(id) {
-		case DOOR_IN_OPEN_REQ:
-			cout << "ENTRY door opened for " << carID << "." << endl;
-			break;
-		case DOOR_OUT_OPEN_REQ:
-			cout << "EXIT door opened for " << carID << "." << endl;
-			break;
-		case CAR_INSIDE:
-			cout << "ENTRY door closed." << endl;
-			break;
-		case CAR_OUTSIDE:
-			cout << "EXIT door closed." << endl;
-			break;
-	}
-}
-
-void dispatcher(Message * msg, unsigned long id, int who = -1) {
-	switch(id) {
-		case DOOR_IN_OPEN_REQ:
-		{
-			DoorOpenReq *req = static_cast<DoorOpenReq*>(msg);
-			handleDoorRequest(id, req->carID);
-
-			DoorOpenCfm * cfm = new DoorOpenCfm;
-			cfm->result = 0;
-			req->mq->send(DOOR_IN_OPEN_CFM, cfm);
-			break;
-		}
-		case DOOR_OUT_OPEN_REQ:
-		{
-			DoorOpenReq *req = static_cast<DoorOpenReq*>(msg);
-			handleDoorRequest(id, req->carID);
-
-			DoorOpenCfm * cfm = new DoorOpenCfm;
-			cfm->result = 0;
-			req->mq->send(DOOR_OUT_OPEN_CFM, cfm);
-			break;
-		}
-		case CAR_INSIDE:
-		{
-			CarInside *msgCast = static_cast<CarInside*>(msg);
-			cout << "Car #" << msgCast->id << " comes inside." << endl;
-			handleDoorRequest(id);
-			break;
-		}
-		case CAR_OUTSIDE:
-		{
-			CarOutside *msgCast = static_cast<CarOutside*>(msg);
-			cout << "Car #" << msgCast->id << " drives out." << endl;
-			handleDoorRequest(id);
-			break;
-		}
-	}
-}
 
 void * entryGuardThread(void *data) {
 	MsgQueue *mq = static_cast<MsgQueue*>(data);
@@ -102,11 +37,11 @@ void * carThread(void *data) {
 	for (;;) {
 		unsigned long id;
 		Message *msg = carQ.receive(id);
-		CarHandler::handleMsg(msg, id);
 		delete msg;
 	}
 }
 
+/*
 void * exitGuardThread(void *data) {
 	MsgQueue *mq = static_cast<MsgQueue*>(data);
 	queue<Message*> waitingReqs;
@@ -147,6 +82,7 @@ void * exitGuardThread(void *data) {
 		}
 	}
 }
+*/
 
 int main() {
 	srand(time(NULL));
@@ -164,10 +100,10 @@ int main() {
 		cout << "Error creating entryGuard thread.." << endl;
 		return -1;
 	}
-	if (pthread_create(&exitGuard, NULL, exitGuardThread, &exitQueue) != 0) {
+	/*if (pthread_create(&exitGuard, NULL, exitGuardThread, &exitQueue) != 0) {
 		cout << "Error creating exitGuard thread.." << endl;
 		return -1;
-	}
+	}*/
 	for (int i = 0; i < carAmount; i++) {
 		CarData *data = new CarData;
 		data->entryMQ = &entryQueue;
@@ -179,7 +115,7 @@ int main() {
 	}
 
 	pthread_join(entryGuard, NULL);
-	pthread_join(exitGuard, NULL);
+	//pthread_join(exitGuard, NULL);
 	for (int i = 0; i < carAmount; i++) {
 		pthread_join(cars[i], NULL);
 	}
