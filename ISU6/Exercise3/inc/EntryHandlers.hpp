@@ -15,8 +15,8 @@ void entryGenerateDoorOpenCfm(MsgQueue *mq) {
 	mq->send(DOOR_IN_OPEN_CFM, response);
 }
 
-void handleEntryDoorInOpenReq(DoorOpenReq *req) {
-	cout << "ENTRY DOOR opened for car #" << req->carID << "." << endl;
+void handleEntryDoorOpenReq(DoorOpenReq *req) {
+	cout << "ENTRY DOOR opened for CAR #" << req->carID << "." << endl;
 	entryGenerateDoorOpenCfm(req->mq);
 }
 
@@ -24,10 +24,7 @@ void handleEntryWaitingReqs(queue<DoorOpenReq*> &guardQ, GuardState &state) {
 	if (!guardQ.empty()) {
 		DoorOpenReq *req = guardQ.front();
 		guardQ.pop();
-		cout << "ENTRY DOOR opened for CAR #" << req->carID << endl;
-		DoorOpenCfm *cfm = new DoorOpenCfm;
-		cfm->result = true;
-		req->mq->send(DOOR_IN_OPEN_CFM, cfm);
+		handleEntryDoorOpenReq(req);
 	}
 	else {
 		state = ST_READY;
@@ -39,11 +36,12 @@ void handleEntryReady(Message *msg, unsigned long id) {
 		case DOOR_IN_OPEN_REQ:
 		{
 			DoorOpenReq *req = static_cast<DoorOpenReq*>(msg);
-			handleEntryDoorInOpenReq(req);
+			handleEntryDoorOpenReq(req);
 			break;
 		}
 		default:
-			cout << "Entry guard handler handleEntryReady received a wrong Message: " << id << endl;
+			cout << "##ERROR: " << 
+			"Entry guard handler handleEntryReady received a wrong Message: " << id << endl;
 	}
 }
 
@@ -65,7 +63,8 @@ void handleEntryBusy(Message *msg, unsigned long id, GuardState &state, queue<Do
 	}
 }
 
-void entryHandleMsg(Message *msg, unsigned long id, GuardState &state, queue<DoorOpenReq*> &guardQ) {
+void entryHandleMsg(Message *msg, unsigned long id,
+	GuardState &state, queue<DoorOpenReq*> &guardQ) {
 	//cout << "ENTRY: MSG: " << id << endl;
 	switch (state) {
 		case ST_READY:

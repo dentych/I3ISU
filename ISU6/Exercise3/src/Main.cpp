@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "../inc/CarHandlers.hpp"
 #include "../inc/EntryHandlers.hpp"
+#include "../inc/ExitHandlers.hpp"
 
 using namespace std;
 
@@ -16,6 +17,19 @@ void * entryGuardThread(void *data) {
 		unsigned long id;
 		Message *msg = mq->receive(id);
 		entryHandleMsg(msg, id, state, waitingReqs);
+		delete msg;
+	}
+}
+
+void * exitGuardThread(void *data) {
+	MsgQueue *mq = static_cast<MsgQueue*>(data);
+	GuardState state = ST_READY;
+	queue<DoorOpenReq*> waitingReqs;
+
+	for (;;) {
+		unsigned long id;
+		Message *msg = mq->receive(id);
+		exitHandleMsg(msg, id, state, waitingReqs);
 		delete msg;
 	}
 }
@@ -40,7 +54,7 @@ void * carThread(void *data) {
 int main() {
 	srand(time(NULL));
 
-	int carAmount = 10;
+	int carAmount = 25;
 
 	// Guard message queue
 	MsgQueue entryQueue(carAmount);
@@ -53,10 +67,10 @@ int main() {
 		cout << "Error creating entryGuard thread.." << endl;
 		return -1;
 	}
-	/*if (pthread_create(&exitGuard, NULL, exitGuardThread, &exitQueue) != 0) {
+	if (pthread_create(&exitGuard, NULL, exitGuardThread, &exitQueue) != 0) {
 		cout << "Error creating exitGuard thread.." << endl;
 		return -1;
-	}*/
+	}
 	for (int i = 0; i < carAmount; i++) {
 		CarData *data = new CarData;
 		data->entryMQ = &entryQueue;
@@ -68,7 +82,7 @@ int main() {
 	}
 
 	pthread_join(entryGuard, NULL);
-	//pthread_join(exitGuard, NULL);
+	pthread_join(exitGuard, NULL);
 	for (int i = 0; i < carAmount; i++) {
 		pthread_join(cars[i], NULL);
 	}

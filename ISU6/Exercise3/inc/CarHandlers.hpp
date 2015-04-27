@@ -32,11 +32,11 @@ void carGenerateCarInsideMsg(MsgQueue *entryQueue, int carID) {
 	entryQueue->send(CAR_INSIDE, msg);
 }
 
-void carGenerateCarOutsideMsg(MsgQueue *entryQueue, int carID) {
+void carGenerateCarOutsideMsg(MsgQueue *exitQueue, int carID) {
 	CarOutside *msg = new CarOutside;
 	msg->id = carID;
 
-	entryQueue->send(CAR_OUTSIDE, msg);
+	exitQueue->send(CAR_OUTSIDE, msg);
 }
 
 void handleCarParked(int carID) {
