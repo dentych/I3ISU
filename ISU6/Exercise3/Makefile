@@ -22,9 +22,10 @@ $(TARGET): $(OBJECT) $(DEPS)
 	$(CXX) -MM -MT$(@:.d=.o) $^ > $@
 
 help:
-	@echo "Objects: $(OBJECT)"
-	@echo "Source: $(SOURCE)"
-	@echo "Deps: $(DEPS)"
+	@echo There are 3 targets to run
+	@echo "all: \tThis target is called by default and compiles all the source."
+	@echo "clean: \tCleans the compiled .o object files and binaries."
+	@echo "run: \tRuns the compiled binary."
 
 clean:
 	rm -rf $(TARGET) $(DEPS) $(OBJECT)
@@ -32,6 +33,6 @@ clean:
 run:
 	./$(TARGET)
 
-ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),clean, help)
 -include $(DEPS)
 endif
