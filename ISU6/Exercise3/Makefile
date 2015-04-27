@@ -29,6 +29,9 @@ help:
 clean:
 	rm -rf $(TARGET) $(DEPS) $(OBJECT)
 
+run:
+	./$(TARGET)
+
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
 endif

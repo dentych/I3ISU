@@ -23,71 +23,24 @@ void * entryGuardThread(void *data) {
 void * carThread(void *data) {
 	// Convert void * data to CarData struct.
 	CarData *cardata = static_cast<CarData*>(data);
-	// Extract the mq pointers from the CarData struct
-	MsgQueue *entryMQ = cardata->entryMQ;
-	MsgQueue *exitMQ = cardata->exitMQ;
-	// ID of this car thread
-	int carID = cardata->ID;
-	// A queue specific for this car (for the door open confirm)
-	MsgQueue carQ(1);
 	
 	// Start ze car
-	entryMQ->send(DOOR_IN_OPEN_REQ, carGenerateOpenMsg(entryMQ, carID));
+	carGenerateInOpenReq(&cardata->carQ, cardata->entryMQ, cardata->ID);
 
 	for (;;) {
 		unsigned long id;
-		Message *msg = carQ.receive(id);
+		Message *msg = (cardata->carQ).receive(id);
+		carHandleMsg(id, msg, cardata);
 		delete msg;
 	}
+
+	delete cardata;
 }
-
-/*
-void * exitGuardThread(void *data) {
-	MsgQueue *mq = static_cast<MsgQueue*>(data);
-	queue<Message*> waitingReqs;
-	GuardState state = ST_READY;
-
-	for (;;) {
-		db("For loop");
-		unsigned long id;
-		Message *msg;
-
-		if (state == ST_READY) {
-			if (waitingReqs.empty()) {
-				msg = mq->receive(id);
-				dispatcher(msg, id);
-				delete msg;
-			}
-			else {
-				msg = waitingReqs.front();
-				waitingReqs.pop();
-				dispatcher(msg, DOOR_OUT_OPEN_REQ);
-				delete msg;
-			}
-			state = ST_BUSY;
-		}
-		else {
-			// ST_BUSY
-			msg = mq->receive(id);
-
-			if (id == CAR_OUTSIDE) {
-				dispatcher(msg, id);
-				delete msg;
-				state = ST_READY;
-			}
-			else {
-				// ID DOOR_OUT_OPEN_REQ
-				waitingReqs.push(msg);
-			}
-		}
-	}
-}
-*/
 
 int main() {
 	srand(time(NULL));
 
-	int carAmount = 200;
+	int carAmount = 10;
 
 	// Guard message queue
 	MsgQueue entryQueue(carAmount);

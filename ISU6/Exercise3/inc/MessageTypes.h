@@ -16,6 +16,8 @@ enum GuardState {
 };
 
 struct CarData {
+	CarData() : carQ(1) {}
+	MsgQueue carQ;
 	MsgQueue *entryMQ;
 	MsgQueue *exitMQ;
 	int ID;
