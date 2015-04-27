@@ -1,7 +1,8 @@
 #Makefile test of wildcard
 INCDIR=inc
 SRCDIR=src
-SOURCE=$(wildcard $(SRCDIR)/*.cpp)
+EX1DIR=../Exercise1
+SOURCE=$(wildcard $(SRCDIR)/*.cpp) $(EX1DIR)/Message.cpp $(EX1DIR)/MsgQueue.cpp
 OBJECT=$(SOURCE:.cpp=.o)
 DEPS=$(SOURCE:.cpp=.d)
 TARGET=prog
@@ -10,11 +11,15 @@ CXX=g++
 
 .PHONY: all help clean
 all: $(TARGET)
-$(TARGET): $(OBJECT)
-	$(CXX) -o $(TARGET) $(OBJECT)
+$(TARGET): $(OBJECT) $(DEPS)
+	$(CXX) -o $(TARGET) $(OBJECT) $(FLAGS)
 	
 %.o: %.cpp
-	$(CXX) -c -o $@ $(filter %.cpp, $^) $(FLAGS)
+	$(CXX) -c -o $@ $(filter %.cpp, $^)
+
+# Dependency stuff
+%.d: %.cpp
+	$(CXX) -MM -MT$(@:.d=.o) $^ > $@
 
 help:
 	@echo "Objects: $(OBJECT)"
@@ -22,10 +27,8 @@ help:
 	@echo "Deps: $(DEPS)"
 
 clean:
-	rm -rf $(TARGET) $(OBJECT) $(DEPS)
+	rm -rf $(TARGET) $(DEPS) $(OBJECT)
 
-# Dependency stuff
-%.d: %.cpp
-	$(CXX) -MM -MT$(@:.d=.o) $^ > $@
-
+ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
+endif
