@@ -1,21 +1,31 @@
-CC=g++
-CCLIB=-l pthread
+#Makefile test of wildcard
+INCDIR=inc
+SRCDIR=src
+SOURCE=$(wildcard $(SRCDIR)/*.cpp)
+OBJECT=$(SOURCE:.cpp=.o)
+DEPS=$(SOURCE:.cpp=.d)
 TARGET=prog
-SOURCES=Main.cpp Message.cpp MsgQueue.cpp
-SRCDIR=../Exercise1
+FLAGS=-lpthread
+CXX=g++
 
-$(TARGET): $(SOURCES:.cpp=.o)
-	$(CC) -o $@ $^ $(CCLIB)
+.PHONY: all help clean
+all: $(TARGET)
+$(TARGET): $(OBJECT)
+	$(CXX) -o $(TARGET) $(OBJECT)
+	
+%.o: %.cpp
+	$(CXX) -c -o $@ $(filter %.cpp, $^) $(FLAGS)
 
-Main.o: Main.cpp
-	$(CC) -c -o $@ $^
+help:
+	@echo "Objects: $(OBJECT)"
+	@echo "Source: $(SOURCE)"
+	@echo "Deps: $(DEPS)"
 
-%.o: $(SRCDIR)/%.cpp
-	$(CC) -c -o $@ $^
-
-.PHONY: clean run
 clean:
-	rm -f *.o $(TARGET)
+	rm -rf $(TARGET) $(OBJECT) $(DEPS)
 
-run:
-	./$(TARGET)
+# Dependency stuff
+%.d: %.cpp
+	$(CXX) -MM -MT$(@:.d=.o) $^ > $@
+
+-include $(DEPS)

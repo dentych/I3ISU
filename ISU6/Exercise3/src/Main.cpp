@@ -2,8 +2,8 @@
 #include <string>
 #include <unistd.h>
 #include <stdlib.h>
-#include "../Exercise1/Message.h"
-#include "../Exercise1/MsgQueue.h"
+#include "../../Exercise1/Message.h"
+#include "../../Exercise1/MsgQueue.h"
 
 using namespace std;
 
