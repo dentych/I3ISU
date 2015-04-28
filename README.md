@@ -1,7 +1,7 @@
 # ISU
 Source code from ISU exercises from Aarhus University School of Engineering.
 
-**ISU1 - Course intro and Introduction to OS and programming in C/C++ in Linux**
+**ISU1 - Course intro and Introduction to OS and programming in C/C++ in Linux**  
 A little about Makefiles and how they work. We're making a simple Makefile.
 
 **ISU2 - Building C/C++ programs for Target**
