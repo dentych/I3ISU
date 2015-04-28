@@ -8,24 +8,24 @@
 
 namespace osapi
 {    
-  class Conditional : private Notcopyable
-  {
-  public:
-    enum Awoken {
-      SIGNALED,
-      TIMEDOUT
-    };    
+	class Conditional : private Notcopyable
+	{
+		public:
+			enum Awoken {
+				SIGNALED,
+				TIMEDOUT
+			};    
 
-    Conditional();
-    void signal();
-    void broadcast();
-    void wait(Mutex& mut);
-    Awoken waitTimed(Mutex& mut, unsigned long timeout);
-    ~Conditional();
-  private:
-    pthread_condattr_t  condattr_;
-    pthread_cond_t      cond_;
-  };
+			Conditional();
+			void signal();
+			void broadcast();
+			void wait(Mutex& mut);
+			Awoken waitTimed(Mutex& mut, unsigned long timeout);
+			~Conditional();
+		private:
+			pthread_condattr_t  condattr_;
+			pthread_cond_t      cond_;
+	};
 
 }
 
