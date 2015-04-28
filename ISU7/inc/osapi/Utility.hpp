@@ -1,6 +1,7 @@
 #ifndef OSAPI_UTILITY_HPP
 #define OSAPI_UTILITY_HPP
 
+#include <unistd.h>
 
 namespace osapi
 {
