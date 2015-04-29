@@ -1,0 +1,7 @@
+ Total lines of code throughout the repo.
+ Snapshot date: 29/4-2015, 16:06
+
+ 195 total <-- .h
+ 2036 total <-- .hpp
+ 3192 total <-- .cpp
+ 449 total <-- Makefiles
