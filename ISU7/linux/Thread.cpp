@@ -36,14 +36,16 @@ namespace osapi
 			sched_p.sched_priority = static_cast<int>(priority_);							// Set priority
 			if(pthread_attr_setschedparam(&attr, &sched_p) != 0) throw ThreadError();					// Use the priority        
 
-			/* Missing thread creation */
+			/* thread creation */
+			pthread_create(&threadId_, &attr, ThreadFunctor::threadMapper, tf_);
 			pthread_attr_destroy(&attr);
 		}
 		else
 		{
-			/* Missing thread creation */
+			/* thread creation */
+			pthread_create(&threadId_, NULL, ThreadFunctor::threadMapper, tf_);
 		}
-		// If ok no exception was thrown thus we have a valid thread and its attached!
+		// If ok no exception was thrown thus we have a valid thread and it's attached!
 		attached_ = true;
 	}
 
