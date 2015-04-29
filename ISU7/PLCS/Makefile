@@ -38,5 +38,5 @@ clean: cleanobj
 	@echo Cleaning executables
 
 cleanobj:
-	@rm -f *.o
+	@rm -f src/*.o
 	@echo Cleaning objects

@@ -57,8 +57,9 @@ namespace osapi
 		/* Missing contents...*/
 	}
 
-
-
+	Thread::ThreadPriority Thread::getPriority() const {
+		return priority_;
+	}
 
 	void Thread::join()
 	{

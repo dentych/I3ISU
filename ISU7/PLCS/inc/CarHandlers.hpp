@@ -2,13 +2,9 @@
 #define CARHANDLERS_HPP_
 
 #include <iostream>
-#include <unistd.h>
-#include "../../Exercise1/Message.h"
-#include "../../Exercise1/MsgQueue.h"
 #include "../inc/MessageTypes.h"
 
 using namespace std;
-using namespace osapi;
 
 void carGenerateInOpenReq(MsgQueue *carQueue, MsgQueue *entryQueue, int id) {
 	DoorOpenReq *req = new DoorOpenReq;
@@ -43,19 +39,19 @@ void carGenerateCarOutsideMsg(MsgQueue *exitQueue, int carID) {
 void handleCarParked(int carID) {
 	int num = rand() % 10;
 	cout << "Car #" << carID << " parked for " << num << " seconds." << endl;
-	sleep(num);
+	osapi::sleep(num*1000);
 }
 
 void handleCarOutsideTimeout() {
 	int num = rand() % 10;
-	sleep(num);
+	osapi::sleep(num*1000);
 }
 
 void carHandleMsg(unsigned long id, Message *msg, CarData *cardata) {
 	switch(id) {
 		case DOOR_IN_OPEN_CFM:
 		{
-			DoorOpenCfm *cfm = static_cast<DoorOpenCfm*>(msg);
+			//DoorOpenCfm *cfm = static_cast<DoorOpenCfm*>(msg);
 			cout << "Car #" << cardata->ID << " drives into parking lot." << endl;
 			carGenerateCarInsideMsg(cardata->entryMQ, cardata->ID);
 			handleCarParked(cardata->ID);
@@ -64,7 +60,7 @@ void carHandleMsg(unsigned long id, Message *msg, CarData *cardata) {
 		}
 		case DOOR_OUT_OPEN_CFM:
 		{
-			DoorOpenCfm *cfm = static_cast<DoorOpenCfm*>(msg);
+			//DoorOpenCfm *cfm = static_cast<DoorOpenCfm*>(msg);
 			cout << "Car #" << cardata->ID << " drives out of parking lot." << endl;
 			carGenerateCarOutsideMsg(cardata->exitMQ, cardata->ID);
 			handleCarOutsideTimeout();

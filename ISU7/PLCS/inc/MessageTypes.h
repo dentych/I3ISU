@@ -1,6 +1,14 @@
 #ifndef MESSAGETYPES_H_
 #define MESSAGETYPES_H_
 
+#include <osapi/Message.hpp>
+#include <osapi/MsgQueue.hpp>
+
+using namespace osapi;
+
+// Convert MsgQueue to a BasicMsgQueue<Message*>
+typedef BasicMsgQueue<Message*> MsgQueue;
+
 enum {
 	DOOR_IN_OPEN_REQ,
 	DOOR_IN_OPEN_CFM,

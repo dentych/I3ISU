@@ -4,8 +4,6 @@
 #include <iostream>
 #include <queue>
 #include "../inc/MessageTypes.h"
-#include "../../Exercise1/Message.h"
-#include "../../Exercise1/MsgQueue.h"
 
 using namespace std;
 
@@ -56,7 +54,7 @@ void handleEntryBusy(Message *msg, unsigned long id, GuardState &state, queue<Do
 		case CAR_INSIDE:
 		{
 			cout << "ENTRY DOOR closed." << endl;
-			CarInside *req = static_cast<CarInside*>(msg);
+			//CarInside *req = static_cast<CarInside*>(msg);
 			handleEntryWaitingReqs(guardQ, state);
 			break;
 		}
