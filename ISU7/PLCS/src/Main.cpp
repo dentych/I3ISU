@@ -43,6 +43,13 @@ int main() {
 		Thread *car = cars.front();
 		cars.pop();
 		car->join();
+		delete car;
+	}
+
+	while (!carThreads.empty()) {
+		CarThread *thread = carThreads.front();
+		carThreads.pop();
+		delete thread;
 	}
 
 	return 0;

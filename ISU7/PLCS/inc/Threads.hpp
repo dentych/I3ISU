@@ -23,7 +23,7 @@ class EntryGuardThread : public ThreadFunctor {
 			delete mq;
 		}
 
-		~EntryGuardThread() {}
+		virtual ~EntryGuardThread() {}
 
 	private:
 		MsgQueue *mq;
@@ -47,7 +47,7 @@ class ExitGuardThread : public ThreadFunctor {
 			delete mq;
 		}
 
-		~ExitGuardThread() {}
+		virtual ~ExitGuardThread() {}
 
 	private:
 		MsgQueue *mq;
@@ -73,7 +73,7 @@ class CarThread : public ThreadFunctor {
 			delete cardata;
 		}
 
-		~CarThread();
+		virtual ~CarThread() {}
 
 	private:
 		CarData *cardata;
