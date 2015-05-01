@@ -55,6 +55,8 @@ namespace osapi
 		if(!attached_) throw ThreadError();
 
 		/* Missing contents...*/
+		/* Not anymore it isn't! :P */
+		priority_ = priority;
 	}
 
 	Thread::ThreadPriority Thread::getPriority() const {
