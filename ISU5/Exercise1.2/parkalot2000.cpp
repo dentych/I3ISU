@@ -20,8 +20,8 @@ void * plcs_exitguard(void *);
 void * car(void *);
 
 // Global variables (protected by mutexes)
-bool carWaitingEntry = false;
-bool carWaitingExit = false;
+int carWaitingEntry = 0;
+int carWaitingExit = 0;
 bool doorEntryOpen = false;
 bool doorExitOpen = false;
 
@@ -64,7 +64,7 @@ int main() {
 void * plcs_entryguard(void *) {
 	while (run) {
 		pthread_mutex_lock(&mutex_entry);
-		while (!carWaitingEntry)
+		while (carWaitingEntry < 1)
 			pthread_cond_wait(&cond_entry, &mutex_entry);
 		doorEntryOpen = true;
 		pthread_cond_signal(&cond_entry);
@@ -78,7 +78,7 @@ void * plcs_entryguard(void *) {
 void * plcs_exitguard(void *) {
 	while (run) {
 		pthread_mutex_lock(&mutex_exit);
-		while (!carWaitingExit)
+		while (carWaitingExit < 1)
 			pthread_cond_wait(&cond_exit, &mutex_exit);
 		doorExitOpen = true;
 		pthread_cond_signal(&cond_exit);
@@ -101,11 +101,11 @@ void * car(void * arg) {
 		if (state == ARRIVING) {
 			cout << "Car #" << ID << ": ARRIVING" << endl;
 			pthread_mutex_lock(&mutex_entry);
-			carWaitingEntry = true;
+			carWaitingEntry++;
 			pthread_cond_signal(&cond_entry);
 			while (!doorEntryOpen)
 				pthread_cond_wait(&cond_entry, &mutex_entry);
-			carWaitingEntry = false;
+			carWaitingEntry--;
 			state = PARKED;
 			pthread_cond_signal(&cond_entry);
 			pthread_mutex_unlock(&mutex_entry);
@@ -119,11 +119,11 @@ void * car(void * arg) {
 		else if (state == EXITING) {
 			cout << "Car #" << ID << ": EXITING" << endl;
 			pthread_mutex_lock(&mutex_exit);
-			carWaitingExit = true;
+			carWaitingExit++;
 			pthread_cond_signal(&cond_exit);
 			while (!doorExitOpen)
 				pthread_cond_wait(&cond_exit, &mutex_exit);
-			carWaitingExit = false;
+			carWaitingExit--;
 			state = EXITED;
 			pthread_cond_signal(&cond_exit);
 			pthread_mutex_unlock(&mutex_exit);
