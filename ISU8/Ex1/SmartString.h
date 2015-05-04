@@ -6,7 +6,7 @@
 class SmartString {
 	public:
 		// Methods
-		SmartString(std::string *str = std::string(""));
+		SmartString(std::string *str = new std::string(""));
 		~SmartString();
 		std::string* get();
 		std::string* operator->();

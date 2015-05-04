@@ -3,10 +3,15 @@
 
 using namespace std;
 
-int main() {
-	SmartString s(new string("Joachim"));
+int main ()
+{
+	SmartString ss(new string("Hello world"));
+	cout << "String length : " << ss->length() << endl;
 
-	cout << "String is this: " << *s << ". Length: " << s->length() << endl;
+	if(ss->find ("world") != string::npos )
+		cout << "The ’ss’ string does contain ’world’" << endl ;
+	else
+		cout << "The ’ss’ string does NOT contain ’world’" << endl;
 
-	return 0;
+	//SmartString ss2 = ss; // <- Deliberately why ? What happens ?
 }
